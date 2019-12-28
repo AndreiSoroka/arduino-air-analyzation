@@ -230,16 +230,16 @@ void ScreenSetting2() {
     lcd.setCursor(0, 0);
     lcd.write("Max gas percent:");
     lcd.setCursor(0, 1);
-    lcd.write(settingsMaxGas);
-    lcd.write("%");
+    lcd.print(settingsMaxGas);
+    lcd.print("%    ");
 }
 
 void ScreenSetting3() {
     lcd.setCursor(0, 0);
     lcd.write("Min gas percent:");
     lcd.setCursor(0, 1);
-    lcd.write(settingsMinGas);
-    lcd.write("%");
+    lcd.print(settingsMinGas);
+    lcd.print("%    ");
 }
 
 void updateScreen(boolean isClear) {
@@ -287,28 +287,46 @@ void clickButtonHome() {
 
 void clickButtonUp() {
     if (!isSettingsScreen) {
-        currentScreen = getScreenNumber(currentScreen + 1);
+        currentScreen = getScreenNumber(currentScreen - 1);
         updateScreen(true);
         return;
     } else {
-        // Sound alarm
-        if (currentScreen == 1) {
-            settingsSound = !settingsSound;
-            updateScreen(false);
+        switch (currentScreen) {
+            case 1: // Sound alarm
+                settingsSound = !settingsSound;
+                updateScreen(false);
+                break;
+            case 2: // settingsMaxGas
+                settingsMaxGas = constrain(settingsMaxGas + 1, 10, 100);
+                updateScreen(false);
+                break;
+            case 3: // settingsMinGas
+                settingsMinGas = constrain(settingsMinGas + 1, 10, 100);
+                updateScreen(false);
+                break;
         }
     }
 }
 
 void clickButtonDown() {
     if (!isSettingsScreen) {
-        currentScreen = getScreenNumber(currentScreen - 1);
+        currentScreen = getScreenNumber(currentScreen + 1);
         updateScreen(true);
         return;
     } else {
-        // Sound alarm
-        if (currentScreen == 1) {
-            settingsSound = !settingsSound;
-            updateScreen(false);
+        switch (currentScreen) {
+            case 1: // Sound alarm
+                settingsSound = !settingsSound;
+                updateScreen(false);
+                break;
+            case 2: // settingsMaxGas
+                settingsMaxGas = constrain(settingsMaxGas - 1, 10, 100);
+                updateScreen(false);
+                break;
+            case 3: // settingsMinGas
+                settingsMinGas = constrain(settingsMinGas - 1, 10, 100);
+                updateScreen(false);
+                break;
         }
     }
 }
@@ -349,10 +367,10 @@ void loopButtons() {
             clickButtonHome();
         } else if (keyValue > 600 && keyValue < 750) {
             // button 2
-            clickButtonUp();
-        } else if (keyValue > 450 && keyValue < 550) {
-            // button 3
             clickButtonDown();
+        } else if (keyValue > 450 && keyValue < 600) {
+            // button 3
+            clickButtonUp();
         }
     } else {
         if (millis() - timestampButtonDown > 1000) {
