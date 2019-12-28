@@ -18,6 +18,8 @@ unsigned int last4Hours = 0;
 
 /* Settings */
 boolean settingsSound = true;
+int settingsMaxGas = 32;
+int settingsMinGas = 15;
 
 /* Buttons */
 #define PIN_ANALOG_KEY A7
@@ -201,7 +203,6 @@ void loopButtons(){
     pressedButton = keyPressed;
 
     if (keyPressed) {
-        timestampButtonDown = millis() + 222;
         if (keyValue > 900) {
             // button 1
             clickButtonHome();
@@ -216,9 +217,11 @@ void loopButtons(){
         }
     } else {
         if (millis() - timestampButtonDown > 1000) {
+            Serial.println(millis() - timestampButtonDown);
             holdButton();
         }
     }
+    timestampButtonDown = millis() + 222;
 }
 
 /**
@@ -323,6 +326,8 @@ void updateScreen(boolean isClear){
     if (isSettingsScreen){
         switch(currentScreen) {
             case 1: ScreenSetting1(); break;
+            case 2: ScreenSetting2(); break;
+            case 3: ScreenSetting3(); break;
         }
     } else {
         switch(currentScreen) {
@@ -349,9 +354,25 @@ void Screen4(){
 
 void ScreenSetting1(){
     lcd.setCursor(0,0);
-    lcd.write("Sound alarm");
+    lcd.write("Sound alarm:");
     lcd.setCursor(0,1);
-    lcd.write(settingsSound ? "on" : "off");
+    lcd.write(settingsSound ? "on " : "off");
+}
+
+void ScreenSetting2(){
+    lcd.setCursor(0,0);
+    lcd.write("Max gas percent:");
+    lcd.setCursor(0,1);
+    lcd.write(settingsMaxGas);
+    lcd.write("%");
+}
+
+void ScreenSetting3(){
+    lcd.setCursor(0,0);
+    lcd.write("Min gas percent:");
+    lcd.setCursor(0,1);
+    lcd.write(settingsMinGas);
+    lcd.write("%");
 }
 
 
@@ -368,7 +389,7 @@ void clickButtonUp(){
         // Sound alarm
         if (currentScreen == 1){
             settingsSound = !settingsSound;
-            updateScreen(true);
+            updateScreen(false);
         }
     }
 }
@@ -381,6 +402,7 @@ void clickButtonDown(){
         // Sound alarm
         if (currentScreen == 1){
             settingsSound = !settingsSound;
+            updateScreen(false);
         }
     }
 }
@@ -392,7 +414,13 @@ void holdButton(){
 
 int getScreen(int screen){
     if (isSettingsScreen){
-        return 1;
+        if (screen > 3){
+            return 1;
+        }
+        if (screen < 1) {
+            return 3;
+        }
+        return screen;
     } else {
         if (screen > 4){
             return 1;
@@ -421,5 +449,5 @@ void updateDataFromSensors(float &value, float arrayLink[6], String text){
 }
 
 int getSpecailCharForGas(float &value) {
-    return constrain(map((int) value, 15, 32, 1, 8), 1, 8);
+    return constrain(map((int) value, settingsMinGas, settingsMaxGas, 1, 8), 1, 8);
 }
