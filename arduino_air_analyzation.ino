@@ -3,11 +3,11 @@
 #include <LiquidCrystal.h>
 
 /* Task manager */
-unsigned int lastSecond = 0;
-unsigned int lastMin = 0;
-unsigned int last10Min = 0;
-unsigned int lastHour = 0;
-unsigned int last4Hours = 0;
+unsigned long lastSecond = 0;
+unsigned long lastMin = 0;
+unsigned long last10Min = 0;
+unsigned long lastHour = 0;
+unsigned long last4Hours = 0;
 
 /* Consts */
 #define TIME_SECOND 1000
@@ -24,7 +24,7 @@ int settingsMinGas = 15;
 /* Buttons */
 #define PIN_ANALOG_KEY A7
 unsigned int timestampButtonDown = 0;
-boolean pressedButton = 0;
+boolean pressedButton = false;
 
 /* LCD Screen */
 #define LCD_RS 4
@@ -155,6 +155,7 @@ void setup() {
     lcd.createChar(6, specialCharPercent5);
     lcd.createChar(7, specialCharPercent6);
     lcd.createChar(8, specialCharPercent7);
+    lcd.createChar(9, specialCharPercent7);
 
     lcd.begin(16, 2);
     lcd.print("Soroka...");
@@ -227,7 +228,7 @@ void loopButtons(){
 /**
  * Loop per second
  */
-void loopPerSecond(unsigned int currentValue, unsigned int &lastValue) {
+void loopPerSecond(unsigned int currentValue, unsigned long &lastValue) {
     if (currentValue == lastValue) {
         return;
     }
@@ -240,7 +241,7 @@ void loopPerSecond(unsigned int currentValue, unsigned int &lastValue) {
 /**
  * Loop per 1 min
  */
-void loopPerMin(unsigned int currentValue, unsigned int &lastValue){
+void loopPerMin(unsigned int currentValue, unsigned long &lastValue){
     if (currentValue == lastValue) {
         return;
     }
@@ -252,7 +253,7 @@ void loopPerMin(unsigned int currentValue, unsigned int &lastValue){
 /**
  * Loop per 10 mins
  */
-void loopPer10Mins(unsigned int currentValue, unsigned int &lastValue){
+void loopPer10Mins(unsigned int currentValue, unsigned long &lastValue){
     if (currentValue == lastValue) {
         return;
     }
@@ -264,7 +265,7 @@ void loopPer10Mins(unsigned int currentValue, unsigned int &lastValue){
 /**
  * Loop per 1 hour
  */
-void loopPerHour(unsigned int currentValue, unsigned int &lastValue){
+void loopPerHour(unsigned int currentValue, unsigned long &lastValue){
     if (currentValue == lastValue) {
         return;
     }
@@ -278,7 +279,7 @@ void loopPerHour(unsigned int currentValue, unsigned int &lastValue){
 /**
  * Loop per 4 hour
  */
-void loopPer4Hours(unsigned int currentValue, unsigned int &lastValue){
+void loopPer4Hours(unsigned int currentValue, unsigned long &lastValue){
     if (currentValue == lastValue) {
         return;
     }
@@ -449,5 +450,5 @@ void updateDataFromSensors(float &value, float arrayLink[6], String text){
 }
 
 int getSpecailCharForGas(float &value) {
-    return constrain(map((int) value, settingsMinGas, settingsMaxGas, 1, 8), 1, 8);
+    return constrain(map((int) value, settingsMinGas, settingsMaxGas, 1, 9), 1, 8);
 }
