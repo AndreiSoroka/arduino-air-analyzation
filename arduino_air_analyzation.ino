@@ -20,6 +20,8 @@ unsigned long last4Hours = 0;
 boolean settingsSound = true;
 int settingsMaxGas = 32;
 int settingsMinGas = 15;
+int settingsMaxTmp = 27;
+int settingsMinTmp = 18;
 
 /* Buttons */
 #define PIN_ANALOG_KEY A7
@@ -158,11 +160,11 @@ float averageOfArray(float arrayLink[6]) {
 
 int getScreenNumber(int screen) {
     if (isSettingsScreen) {
-        if (screen > 3) {
+        if (screen > 5) {
             return 1;
         }
         if (screen < 1) {
-            return 3;
+            return 5;
         }
         return screen;
     } else {
@@ -242,6 +244,22 @@ void ScreenSetting3() {
     lcd.print("%    ");
 }
 
+void ScreenSetting4() {
+    lcd.setCursor(0, 0);
+    lcd.write("Max tmp percent:");
+    lcd.setCursor(0, 1);
+    lcd.print(settingsMaxTmp);
+    lcd.print("C degrees   ");
+}
+
+void ScreenSetting5() {
+    lcd.setCursor(0, 0);
+    lcd.write("Min tmp percent:");
+    lcd.setCursor(0, 1);
+    lcd.print(settingsMinTmp);
+    lcd.print("C degrees   ");
+}
+
 void updateScreen(boolean isClear) {
     if (isClear) {
         lcd.clear();
@@ -258,6 +276,12 @@ void updateScreen(boolean isClear) {
                 break;
             case 3:
                 ScreenSetting3();
+                break;
+            case 4:
+                ScreenSetting4();
+                break;
+            case 5:
+                ScreenSetting5();
                 break;
         }
     } else {
@@ -304,6 +328,14 @@ void clickButtonUp() {
                 settingsMinGas = constrain(settingsMinGas + 1, 10, 100);
                 updateScreen(false);
                 break;
+            case 4: // settingsMaxGas
+                settingsMaxTmp = constrain(settingsMaxTmp + 1, 5, 40);
+                updateScreen(false);
+                break;
+            case 5: // settingsMinGas
+                settingsMinTmp = constrain(settingsMinTmp + 1, 5, 40);
+                updateScreen(false);
+                break;
         }
     }
 }
@@ -325,6 +357,14 @@ void clickButtonDown() {
                 break;
             case 3: // settingsMinGas
                 settingsMinGas = constrain(settingsMinGas - 1, 10, 100);
+                updateScreen(false);
+                break;
+            case 4: // settingsMaxTmp
+                settingsMaxTmp = constrain(settingsMaxTmp - 1, 5, 40);
+                updateScreen(false);
+                break;
+            case 5: // settingsMinTmp
+                settingsMinTmp = constrain(settingsMinTmp - 1, 5, 40);
                 updateScreen(false);
                 break;
         }
