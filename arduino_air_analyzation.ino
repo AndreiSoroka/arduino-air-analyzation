@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include "User_Setup.h"
 #include <LiquidCrystal.h>
+#include "libs/OneWire.cpp"
+//#include "<OneWire.h>"
 
 /* Task manager */
 unsigned long lastSecond = 0;
@@ -130,6 +132,10 @@ float historyPer10Mins[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 float historyPerHour[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 float historyPer4Hours[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
+/* Temperature */
+OneWire ds(2);
+float temperatureValue = 0;
+
 
 /***************************************
  ************** Helpers ****************
@@ -137,6 +143,33 @@ float historyPer4Hours[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
 int getSpecialCharForGas(float &value) {
     return constrain(map((int) value, settingsMinGas, settingsMaxGas, 1, 9), 1, 9);
+}
+int getSpecialCharForTmp(float &value) {
+    return constrain(map((int) value, settingsMinTmp, settingsMaxTmp, 1, 9), 1, 9);
+}
+
+void writeSpecialChar(int code) {
+    if (code == 1) {
+        lcd.print(" ");
+    } else {
+        lcd.write(code);
+    }
+}
+
+float getTmpValue() {
+    byte data[2];
+    ds.reset();
+    ds.write(0xCC);
+    ds.write(0xBE);
+    data[0] = ds.read();
+    data[1] = ds.read();
+    return ((data[1] << 8) | data[0]) * 0.0625;
+}
+
+void requestToGetTmpValue() {
+    ds.reset();
+    ds.write(0xCC);
+    ds.write(0x44);
 }
 
 float getGasPercentValue() {
@@ -179,21 +212,24 @@ int getScreenNumber(int screen) {
 }
 
 void updateDataFromSensors(float &value, float arrayLink[6], const String &text) {
+    // Gas
     lcd.setCursor(0, 0);
-    lcd.write(getSpecialCharForGas(gasValue));
+    writeSpecialChar(getSpecialCharForGas(gasValue));
     lcd.print(gasValue);
     lcd.print("% ");
 
     for (int i = 0; i < 6; ++i) {
-        int code = getSpecialCharForGas(arrayLink[i]);
-        if (code == 1) {
-            lcd.print(" ");
-        } else {
-            lcd.write(code);
-        }
+        writeSpecialChar(getSpecialCharForGas(arrayLink[i]));
     }
 
+    // description
     lcd.print(text);
+
+    // Tmp
+    lcd.setCursor(0, 1);
+    writeSpecialChar(getSpecialCharForTmp(temperatureValue));
+    lcd.print(temperatureValue);
+    lcd.print("C ");
 }
 
 //void printArray(float arrayLink[6]){
@@ -430,7 +466,10 @@ void loopPerSecond(unsigned int currentValue, unsigned long &lastValue) {
     lastValue = currentValue;
 
     gasValue = getGasPercentValue();
+    temperatureValue = getTmpValue();
     updateScreen(false);
+
+    requestToGetTmpValue();
 }
 
 /**
@@ -527,5 +566,6 @@ void setup() {
     lcd.print("Soroka...");
     delay(3333);
     lcd.clear();
+    requestToGetTmpValue();
     delay(777);
 }
