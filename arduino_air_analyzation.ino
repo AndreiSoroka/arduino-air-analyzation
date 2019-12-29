@@ -2,9 +2,9 @@
 #include "User_Setup.h"
 #include <LiquidCrystal.h>
 #include "libs/OneWire.cpp"
-//#include "<OneWire.h>"
 
 /* Task manager */
+unsigned long lastAlarm = 0;
 unsigned long lastSecond = 0;
 unsigned long lastMin = 0;
 unsigned long last10Min = 0;
@@ -12,11 +12,15 @@ unsigned long lastHour = 0;
 unsigned long last4Hours = 0;
 
 /* Consts */
+#define TIME_ALARM 30
 #define TIME_SECOND 1000
 #define TIME_MIN 60000
 #define TIME_10MINS 600000
 #define TIME_HOUR 3600000
 #define TIME_4HOURS 14400000
+
+/* Sound */
+#define PIN_DIGITAL_ALARM 6
 
 /* Settings */
 boolean settingsSound = true;
@@ -148,6 +152,7 @@ float historyTmpPer4Hours[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 int getSpecialCharForGas(float &value) {
     return constrain(map((int) value, settingsMinGas, settingsMaxGas, 1, 9), 1, 9);
 }
+
 int getSpecialCharForTmp(float &value) {
     return constrain(map((int) value, settingsMinTmp, settingsMaxTmp, 1, 9), 1, 9);
 }
@@ -253,11 +258,11 @@ void Screen1() {
 }
 
 void Screen2() {
-    updateDataFromSensors(historyGasPer10Mins,historyTmpPer10Mins, "1h");
+    updateDataFromSensors(historyGasPer10Mins, historyTmpPer10Mins, "1h");
 }
 
 void Screen3() {
-    updateDataFromSensors(historyGasPerHour,historyTmpPerHour, "6h");
+    updateDataFromSensors(historyGasPerHour, historyTmpPerHour, "6h");
 }
 
 void Screen4() {
@@ -463,6 +468,27 @@ void loopButtons() {
     timestampButtonDown = millis() + 222;
 }
 
+void loopForAlarm(unsigned int currentValue, unsigned long &lastValue) {
+    if (currentValue == lastValue) {
+        return;
+    }
+    lastValue = currentValue;
+
+    if (!panicMode && (!settingsSound ||
+                       ((settingsMaxTmp > (int) temperatureValue && settingsMinTmp < (int) temperatureValue) &&
+                        (settingsMaxGas > (int) gasValue && settingsMinGas < (int) gasValue)))) {
+        noTone(PIN_DIGITAL_ALARM);
+        return;
+    }
+
+    int frequency = random(0, 900);
+    if (frequency > 500) {
+        tone(PIN_DIGITAL_ALARM, frequency);
+    } else {
+        noTone(PIN_DIGITAL_ALARM);
+    }
+}
+
 /**
  * Loop per second
  */
@@ -538,8 +564,10 @@ void loopPer4Hours(unsigned int currentValue, unsigned long &lastValue) {
 * Loop
 */
 void loop() {
-    panicMode = digitalRead(PIN_DIGITAL_GAS);
+    panicMode = !digitalRead(PIN_DIGITAL_GAS);
     loopButtons();
+
+    loopForAlarm(millis() / TIME_ALARM, lastAlarm);
 
     // per 1 second
     loopPerSecond(millis() / TIME_SECOND, lastSecond);
