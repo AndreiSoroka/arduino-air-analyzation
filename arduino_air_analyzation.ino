@@ -294,7 +294,7 @@ void ScreenSetting3() {
 
 void ScreenSetting4() {
     lcd.setCursor(0, 0);
-    lcd.write("Max tmp percent:");
+    lcd.write("Max tmp degrees:");
     lcd.setCursor(0, 1);
     lcd.print(settingsMaxTmp);
     lcd.print("C degrees   ");
@@ -302,7 +302,7 @@ void ScreenSetting4() {
 
 void ScreenSetting5() {
     lcd.setCursor(0, 0);
-    lcd.write("Min tmp percent:");
+    lcd.write("Min tmp degrees:");
     lcd.setCursor(0, 1);
     lcd.print(settingsMinTmp);
     lcd.print("C degrees   ");
