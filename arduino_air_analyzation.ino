@@ -127,14 +127,18 @@ boolean isSettingsScreen = false;
 #define PIN_DIGITAL_GAS 8 //подключение цифрового сигнального пина
 boolean panicMode = false;
 float gasValue = 0;
-float historyPerMin[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-float historyPer10Mins[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-float historyPerHour[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-float historyPer4Hours[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+float historyGasPerMin[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+float historyGasPer10Mins[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+float historyGasPerHour[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+float historyGasPer4Hours[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
 /* Temperature */
 OneWire ds(2);
 float temperatureValue = 0;
+float historyTmpPerMin[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+float historyTmpPer10Mins[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+float historyTmpPerHour[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+float historyTmpPer4Hours[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
 
 /***************************************
@@ -211,7 +215,7 @@ int getScreenNumber(int screen) {
     }
 }
 
-void updateDataFromSensors(float &value, float arrayLink[6], const String &text) {
+void updateDataFromSensors(float arrayLinkGas[6], float arrayLinkTmp[6], const String &text) {
     // Gas
     lcd.setCursor(0, 0);
     writeSpecialChar(getSpecialCharForGas(gasValue));
@@ -219,7 +223,7 @@ void updateDataFromSensors(float &value, float arrayLink[6], const String &text)
     lcd.print("% ");
 
     for (int i = 0; i < 6; ++i) {
-        writeSpecialChar(getSpecialCharForGas(arrayLink[i]));
+        writeSpecialChar(getSpecialCharForGas(arrayLinkGas[i]));
     }
 
     // description
@@ -230,6 +234,9 @@ void updateDataFromSensors(float &value, float arrayLink[6], const String &text)
     writeSpecialChar(getSpecialCharForTmp(temperatureValue));
     lcd.print(temperatureValue);
     lcd.print("C ");
+    for (int i = 0; i < 6; ++i) {
+        writeSpecialChar(getSpecialCharForTmp(arrayLinkTmp[i]));
+    }
 }
 
 //void printArray(float arrayLink[6]){
@@ -242,19 +249,19 @@ void updateDataFromSensors(float &value, float arrayLink[6], const String &text)
 
 /////// Screens
 void Screen1() {
-    updateDataFromSensors(gasValue, historyPerMin, "6m");
+    updateDataFromSensors(historyGasPerMin, historyTmpPerMin, "6m");
 }
 
 void Screen2() {
-    updateDataFromSensors(gasValue, historyPer10Mins, "1h");
+    updateDataFromSensors(historyGasPer10Mins,historyTmpPer10Mins, "1h");
 }
 
 void Screen3() {
-    updateDataFromSensors(gasValue, historyPerHour, "6h");
+    updateDataFromSensors(historyGasPerHour,historyTmpPerHour, "6h");
 }
 
 void Screen4() {
-    updateDataFromSensors(gasValue, historyPer4Hours, "1d");
+    updateDataFromSensors(historyGasPer4Hours, historyTmpPer4Hours, "1d");
 }
 
 void ScreenSetting1() {
@@ -481,7 +488,8 @@ void loopPerMin(unsigned int currentValue, unsigned long &lastValue) {
     }
     lastValue = currentValue;
 
-    saveDataToHistory(getGasPercentValue(), historyPerMin);
+    saveDataToHistory(gasValue, historyGasPerMin);
+    saveDataToHistory(temperatureValue, historyTmpPerMin);
 }
 
 /**
@@ -493,7 +501,9 @@ void loopPer10Mins(unsigned int currentValue, unsigned long &lastValue) {
     }
     lastValue = currentValue;
 
-    saveDataToHistory(averageOfArray(historyPerMin), historyPer10Mins);
+    saveDataToHistory(averageOfArray(historyGasPerMin), historyGasPer10Mins);
+    saveDataToHistory(averageOfArray(historyTmpPerMin), historyTmpPer10Mins);
+
 }
 
 /**
@@ -505,7 +515,8 @@ void loopPerHour(unsigned int currentValue, unsigned long &lastValue) {
     }
     lastValue = currentValue;
 
-    saveDataToHistory(averageOfArray(historyPer10Mins), historyPerHour);
+    saveDataToHistory(averageOfArray(historyGasPer10Mins), historyGasPerHour);
+    saveDataToHistory(averageOfArray(historyTmpPer10Mins), historyTmpPerHour);
 }
 
 
@@ -518,7 +529,8 @@ void loopPer4Hours(unsigned int currentValue, unsigned long &lastValue) {
     }
     lastValue = currentValue;
 
-    saveDataToHistory(averageOfArray(historyPer10Mins), historyPer4Hours);
+    saveDataToHistory(averageOfArray(historyGasPer10Mins), historyGasPer4Hours);
+    saveDataToHistory(averageOfArray(historyTmpPer10Mins), historyTmpPer4Hours);
 }
 
 //////////////////////////////
