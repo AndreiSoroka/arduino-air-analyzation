@@ -2,6 +2,7 @@
 #include "User_Setup.h"
 #include <LiquidCrystal.h>
 #include "libs/OneWire.cpp"
+#include <EEPROM.h>
 
 /* Task manager */
 unsigned long lastAlarm = 0;
@@ -24,10 +25,16 @@ unsigned long last4Hours = 0;
 
 /* Settings */
 boolean settingsSound = true;
-int settingsMaxGas = 30;
-int settingsMinGas = 5;
-int settingsMaxTmp = 27;
-int settingsMinTmp = 18;
+byte settingsMaxGas = 30;
+byte settingsMinGas = 5;
+byte settingsMaxTmp = 27;
+byte settingsMinTmp = 18;
+#define MEMORY_SETTINGS_SOUND 1
+#define MEMORY_MAX_GAS 2
+#define MEMORY_MIN_GAS 3
+#define MEMORY_MAX_TMP 4
+#define MEMORY_MIN_TMP 5
+#define MEMORY_IS_INITIAL 6
 
 /* Buttons */
 #define PIN_ANALOG_KEY A7
@@ -366,22 +373,27 @@ void clickButtonUp() {
         switch (currentScreen) {
             case 1: // Sound alarm
                 settingsSound = !settingsSound;
+                EEPROM.update(MEMORY_SETTINGS_SOUND, settingsSound);
                 updateScreen(false);
                 break;
             case 2: // settingsMaxGas
-                settingsMaxGas = constrain(settingsMaxGas + 1, 10, 100);
+                settingsMaxGas = constrain(settingsMaxGas + 1, 0, 100);
+                EEPROM.update(MEMORY_MAX_GAS, settingsMaxGas);
                 updateScreen(false);
                 break;
             case 3: // settingsMinGas
-                settingsMinGas = constrain(settingsMinGas + 1, 10, 100);
+                settingsMinGas = constrain(settingsMinGas + 1, 0, 100);
+                EEPROM.update(MEMORY_MIN_GAS, settingsMinGas);
                 updateScreen(false);
                 break;
-            case 4: // settingsMaxGas
-                settingsMaxTmp = constrain(settingsMaxTmp + 1, 5, 40);
+            case 4: // settingsMaxTmp
+                settingsMaxTmp = constrain(settingsMaxTmp + 1, 0, 40);
+                EEPROM.update(MEMORY_MAX_TMP, settingsMaxTmp);
                 updateScreen(false);
                 break;
-            case 5: // settingsMinGas
-                settingsMinTmp = constrain(settingsMinTmp + 1, 5, 40);
+            case 5: // settingsMinTmp
+                settingsMinTmp = constrain(settingsMinTmp + 1, 0, 40);
+                EEPROM.update(MEMORY_MIN_TMP, settingsMinTmp);
                 updateScreen(false);
                 break;
         }
@@ -397,22 +409,27 @@ void clickButtonDown() {
         switch (currentScreen) {
             case 1: // Sound alarm
                 settingsSound = !settingsSound;
+                EEPROM.update(MEMORY_SETTINGS_SOUND, settingsSound);
                 updateScreen(false);
                 break;
             case 2: // settingsMaxGas
-                settingsMaxGas = constrain(settingsMaxGas - 1, 10, 100);
+                settingsMaxGas = constrain(settingsMaxGas - 1, 0, 100);
+                EEPROM.update(MEMORY_MAX_GAS, settingsMaxGas);
                 updateScreen(false);
                 break;
             case 3: // settingsMinGas
-                settingsMinGas = constrain(settingsMinGas - 1, 10, 100);
+                settingsMinGas = constrain(settingsMinGas - 1, 0, 100);
+                EEPROM.update(MEMORY_MIN_GAS, settingsMinGas);
                 updateScreen(false);
                 break;
             case 4: // settingsMaxTmp
-                settingsMaxTmp = constrain(settingsMaxTmp - 1, 5, 40);
+                settingsMaxTmp = constrain(settingsMaxTmp - 1, 0, 40);
+                EEPROM.update(MEMORY_MAX_TMP, settingsMaxTmp);
                 updateScreen(false);
                 break;
             case 5: // settingsMinTmp
-                settingsMinTmp = constrain(settingsMinTmp - 1, 5, 40);
+                settingsMinTmp = constrain(settingsMinTmp - 1, 0, 40);
+                EEPROM.update(MEMORY_MIN_TMP, settingsMinTmp);
                 updateScreen(false);
                 break;
         }
@@ -592,7 +609,6 @@ void setup() {
     pinMode(PIN_DIGITAL_GAS, INPUT);
     Serial.begin(9600); //инициализация Serial порта
 
-//    lcd.createChar(1, specialCharPercent0);
     lcd.createChar(2, specialCharPercent1);
     lcd.createChar(3, specialCharPercent2);
     lcd.createChar(4, specialCharPercent3);
@@ -603,7 +619,28 @@ void setup() {
     lcd.createChar(9, specialCharPercent8);
 
     lcd.begin(16, 2);
-    lcd.print("Soroka...");
+
+    if (EEPROM.read(MEMORY_IS_INITIAL) == 2) {
+        settingsSound = EEPROM.read(MEMORY_SETTINGS_SOUND);
+        settingsMaxGas = EEPROM.read(MEMORY_MAX_GAS);
+        settingsMinGas = EEPROM.read(MEMORY_MIN_GAS);
+        settingsMaxTmp = EEPROM.read(MEMORY_MAX_TMP);
+        settingsMinTmp = EEPROM.read(MEMORY_MIN_TMP);
+    } else {
+        EEPROM.put(MEMORY_SETTINGS_SOUND, settingsSound);
+        EEPROM.put(MEMORY_MAX_GAS, settingsMaxGas);
+        EEPROM.put(MEMORY_MIN_GAS, settingsMinGas);
+        EEPROM.put(MEMORY_MAX_TMP, settingsMaxTmp);
+        EEPROM.put(MEMORY_MIN_TMP, settingsMinTmp);
+        EEPROM.put(MEMORY_IS_INITIAL, 2);
+
+        lcd.print("First Initial...");
+        delay(1000);
+        lcd.clear();
+    }
+
+    lcd.setCursor(5, 0);
+    lcd.print("Soroka");
     delay(3333);
     lcd.clear();
     requestToGetTmpValue();
