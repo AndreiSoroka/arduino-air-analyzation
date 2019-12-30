@@ -24,8 +24,8 @@ unsigned long last4Hours = 0;
 
 /* Settings */
 boolean settingsSound = true;
-int settingsMaxGas = 32;
-int settingsMinGas = 15;
+int settingsMaxGas = 30;
+int settingsMinGas = 5;
 int settingsMaxTmp = 27;
 int settingsMinTmp = 18;
 
