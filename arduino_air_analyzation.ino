@@ -234,6 +234,7 @@ void updateDataFromSensors(float arrayLinkGas[6], float arrayLinkTmp[6], const S
     lcd.print(gasValue);
     lcd.print("% ");
 
+    lcd.setCursor(8, 0);
     for (int i = 0; i < 6; ++i) {
         writeSpecialChar(getSpecialCharForGas(arrayLinkGas[i]));
     }
